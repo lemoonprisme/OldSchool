@@ -1,0 +1,32 @@
+﻿[
+  {
+    StudentId: 1,
+    Name: Алиса,
+    Age: 15,
+    SchoolId: 1
+  },
+  {
+    StudentId: 21,
+    Name: Алиса,
+    Age: 16,
+    SchoolId: 1
+  },
+  {
+    StudentId: 9,
+    Name: Айзек,
+    Age: 17,
+    SchoolId: 3
+  },
+  {
+    StudentId: 23,
+    Name: Алиса,
+    Age: 17,
+    SchoolId: 1
+  },
+  {
+    StudentId: 24,
+    Name: Алиса,
+    Age: 15,
+    SchoolId: 1
+  }
+]
