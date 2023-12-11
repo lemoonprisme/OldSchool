@@ -7,31 +7,34 @@ namespace OldSchool.Application.Services;
 
 public class SchoolService: ISchoolService
 {
-    private readonly ISchoolStore _schoolStore;
+    private readonly IRepository<School> _schoolRepository;
+    private readonly IRepository<Student> _studentRepository;
+    
     private readonly ILogger<SchoolService> _logger;
 
-    public SchoolService(ISchoolStore schoolStore, ILogger<SchoolService> logger)
+    public SchoolService(ILogger<SchoolService> logger, IRepository<School> schoolRepository, IRepository<Student> studentRepository)
     {
-        _schoolStore = schoolStore;
         _logger = logger;
+        _schoolRepository = schoolRepository;
+        _studentRepository = studentRepository;
     }
 
     public IEnumerable<string> GetUniqueStudentNames()
     {
         _logger.LogInformation("Unique students names:");
-        return _schoolStore.GetSchools().SelectMany(s => s.Students).Select(s => s.Name)
+        return _studentRepository.GetAll().Select(s => s.Name)
             .OrderBy(s => s).Distinct();
     }
 
     public Dictionary<School, double> GetAverageStudentAge()
     {
         _logger.LogInformation("Average students age in school:");
-        return _schoolStore.GetSchools().ToDictionary(d => d, s => s.Students.Select(f => f.Age).Average());
+        return _schoolRepository.GetAll().ToDictionary(d => d, s => s.Students.Select(f => f.Age).Average());
     }
 
     public IEnumerable<Student> GetStudentsNameStartWithA()
     {
-        return _schoolStore.GetSchools().SelectMany(a => a.Students).Where(a => a.Name.StartsWith('А'));
+        return _studentRepository.GetAll().Where(a => a.Name.StartsWith('А'));
     }
     public void GenerateSchoolInStore()
     {
@@ -41,16 +44,18 @@ public class SchoolService: ISchoolService
         var studentFaker = new Faker<Student>().RuleFor(s => s.Name, f => f.Name.FullName());
         var students = studentFaker.Generate(new Random().Next(0, 100));
         school.Students = students;
-        _schoolStore.AddSchool(school);
+        _schoolRepository.Create(school);
         
     }
     public void GenerateStudentInStore()
     {
-        var studentFaker = new Faker<Student>().RuleFor(s => s.Name, f => f.Name.FullName());
+        var studentFaker = new Faker<Student>().RuleFor(s => s.Name, f => f.Name.FullName())
+            .RuleFor(s => s.Age, f => f.Random.Int(7,20));
         var student = studentFaker.Generate();
-        var schoolIds = _schoolStore.GetSchoolIds();
-        student.SchoolId = schoolIds.ElementAt(new Random().Next(0, schoolIds.Count-1));
-        _schoolStore.AddStudent(student);
+        var schoolIds = _schoolRepository.GetAll().Select(s => s.SchoolId).ToArray();
+            student.SchoolId = schoolIds.ElementAt(new Random().Next(0, schoolIds.Count()-1));
+        _studentRepository.Create(student);
+        _schoolRepository.Save();
         using (_logger.BeginScope(new Dictionary<string, object>()
                {
                    {"@Student", student}
@@ -58,5 +63,5 @@ public class SchoolService: ISchoolService
         _logger.LogInformation("Student created(Id:{StudentId})", student.StudentId);
     }
 
-    public IEnumerable<School> GetSchools() => _schoolStore.GetSchools();
+    public IEnumerable<School> GetSchools() => _schoolRepository.GetAll();
 }
