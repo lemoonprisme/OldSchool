@@ -16,10 +16,9 @@ var config = configurationBuilder.Build();
 var connectionString = config.GetConnectionString("DefaultConnection");
 
 var applicationBuilder = Host.CreateApplicationBuilder();
-
 applicationBuilder.Services.AddLogging(c => c.AddSeq());
 applicationBuilder.Services.AddScoped<ISchoolService, SchoolService>();
-applicationBuilder.Services.AddScoped<ISchoolStore, SchoolDataBase>();
+applicationBuilder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 applicationBuilder.Services.AddDbContext<ApplicationContext>(options => options.UseNpgsql(connectionString));
 
 var host = applicationBuilder.Build();
@@ -67,7 +66,7 @@ while (!tokenToStopProgram.IsCancellationRequested)
             if (int.TryParse(schoolIdString, out schoolId))
             {
                 var studentsNames = host.Services
-                    .GetRequiredService<ISchoolStore>().GetSchools() 
+                    .GetRequiredService<IRepository<School>>().GetAll() 
                     .Where(s => s.SchoolId == schoolId)
                     .SelectMany(s => s.Students.Select(f => f.Name));
                 foreach (var name in studentsNames)
