@@ -1,0 +1,3 @@
+﻿School count: 5
+Student count: 251
+{"Edwardo_Bruen39":2.5125918156062124,"Constantin_Graham33":2.5040704539406606,"Katarina.Braun":2.4376637975476942,"Cassidy_Conn17":2.5102275622378483,"Marques33":2.5453497497836635}

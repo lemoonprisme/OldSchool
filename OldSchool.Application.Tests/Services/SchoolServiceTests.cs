@@ -12,7 +12,7 @@ public class SchoolServiceTests
     public Task GetUniqueStudentNames_ReturnsNames()
     {
         //Arrange
-        var mock = new Mock<ISchoolStore>();
+        var mockStudents = new Mock<IRepository<Student>>();
          // Создание школ
         var schools = new List<School>
             {
@@ -86,9 +86,9 @@ public class SchoolServiceTests
         }
     }
 };
-        mock.Setup(a => a.GetSchools()).Returns(schools);
+        mockStudents.Setup(a => a.GetAll()).Returns(schools.SelectMany(s => s.Students));
         
-        var service = new SchoolService(mock.Object, new NullLogger<SchoolService>());
+        var service = new SchoolService(new NullLogger<SchoolService>(), new Mock<IRepository<School>>().Object, mockStudents.Object);
         //Act
         var actual = service.GetUniqueStudentNames();
         
@@ -99,7 +99,7 @@ public class SchoolServiceTests
     public Task GetAverageStudentAge_ReturnsDictinary()
     {
         //Arrange
-        var mock = new Mock<ISchoolStore>();
+        var mock = new Mock<IRepository<School>>();
          // Создание школ
         var schools = new List<School>
             {
@@ -173,8 +173,8 @@ public class SchoolServiceTests
         }
     }
 };
-        mock.Setup(a => a.GetSchools()).Returns(schools);
-        var service = new SchoolService(mock.Object, new NullLogger<SchoolService>());
+        mock.Setup(a => a.GetAll()).Returns(schools);
+        var service = new SchoolService(new NullLogger<SchoolService>(), mock.Object, new Mock<IRepository<Student>>().Object);
         //Act
         var actual = service.GetAverageStudentAge()
             .ToDictionary(a => a.Key.Name, b => b.Value);
@@ -185,7 +185,8 @@ public class SchoolServiceTests
     public Task GetStudentsNameStartWithA_ReturnsStudents()
     {
         //Arrange
-        var mock = new Mock<ISchoolStore>();
+        var mockStudents = new Mock<IRepository<Student>>();
+        var mockSchools = new Mock<IRepository<School>>();
          // Создание школ
         var schools = new List<School>
             {
@@ -259,8 +260,9 @@ public class SchoolServiceTests
         }
     }
 };
-        mock.Setup(a => a.GetSchools()).Returns(schools);
-        var service = new SchoolService(mock.Object, new NullLogger<SchoolService>());
+        mockStudents.Setup(a => a.GetAll()).Returns(schools.SelectMany(s => s.Students));
+        mockSchools.Setup(a => a.GetAll()).Returns(schools);
+        var service = new SchoolService(new NullLogger<SchoolService>(),mockSchools.Object , mockStudents.Object);
         //Act
         var actual = service.GetStudentsNameStartWithA();
         //Assert

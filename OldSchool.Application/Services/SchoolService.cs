@@ -9,7 +9,6 @@ public class SchoolService: ISchoolService
 {
     private readonly IRepository<School> _schoolRepository;
     private readonly IRepository<Student> _studentRepository;
-    
     private readonly ILogger<SchoolService> _logger;
 
     public SchoolService(ILogger<SchoolService> logger, IRepository<School> schoolRepository, IRepository<Student> studentRepository)
