@@ -29,7 +29,19 @@ public class AnalyticsService: IAnalyticsService
             AvgScore = h.Students.SelectMany(st => st.Scores.Select(f => f.Mark)).Average()
         }).AsEnumerable().ToDictionary(scl => scl.Name, scr => scr.AvgScore);
         
+        schoolAnalytics.StudentsCountByLocation = _schoolRepository.GetAll().GroupBy(sc => sc.Location)
+            .Select(h => new
+        {
+            Location = h.Key,
+            Count = h.SelectMany(s => s.Students).Count()
+        })
+                .AsEnumerable().ToDictionary(loc => loc.Location, ct => ct.Count);
 
+        schoolAnalytics.LocationWithHighestScoreBySubject = _schoolRepository.GetAll().Select(a => new
+        {
+            Location = a.Location,
+            Scores = a.Students.SelectMany(s => s.Scores).Select(sc => sc.Mark)
+        }).GroupBy(k => k.Location).
         return schoolAnalytics;
     }
 }
