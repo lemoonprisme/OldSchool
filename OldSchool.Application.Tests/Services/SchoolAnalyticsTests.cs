@@ -38,8 +38,8 @@ public class SchoolAnalyticsTests
                          Gender = Gender.Male,
                          Scores = new List<Score>
                          {
-                             new Score("Математика", 4.5),
-                             new Score("Литература", 4.0)
+                             new Score("Математика", 4.5, 1,1),
+                             new Score("Литература", 4.0, 1,2)
                          }
                      },
                      new Student
@@ -51,8 +51,8 @@ public class SchoolAnalyticsTests
                          Gender = Gender.Female,
                          Scores = new List<Score>
                          {
-                             new Score("Математика", 4.0),
-                             new Score("Литература", 4.5)
+                             new Score("Математика", 4.0, 2,3),
+                             new Score("Литература", 4.5, 2, 4)
                          }
                      }
                  }
@@ -74,21 +74,21 @@ public class SchoolAnalyticsTests
                          Gender = Gender.Male,
                          Scores = new List<Score>
                          {
-                             new Score("Математика", 3.0),
-                             new Score("Литература", 3.0)
+                             new Score("Математика", 3.0,3, 5),
+                             new Score("Литература", 3.0, 3, 6)
                          }
                      },
                      new Student
                      {
-                         StudentId = 3,
+                         StudentId = 4,
                          Name = "Яна",
                          Age = 16,
                          SchoolId = 2,
                          Gender = Gender.Female,
                          Scores = new List<Score>
                          {
-                             new Score("Математика", 3.0),
-                             new Score("Литература", 5.0)
+                             new Score("Математика", 3.0, 4,7),
+                             new Score("Литература", 5.0, 4, 8)
                          }
                      }
                  }
@@ -102,28 +102,28 @@ public class SchoolAnalyticsTests
                  {
                      new Student
                      {
-                         StudentId = 3,
+                         StudentId = 5,
                          Name = "Максим",
                          Age = 15,
                          SchoolId = 2,
                          Gender = Gender.Male,
                          Scores = new List<Score>
                          {
-                             new Score("Математика", 3.0),
-                             new Score("Литература", 3.0)
+                             new Score("Математика", 3.0, 5,9),
+                             new Score("Литература", 3.0, 5,10)
                          }
                      },
                      new Student
                      {
-                         StudentId = 3,
+                         StudentId = 6,
                          Name = "Яна",
                          Age = 16,
                          SchoolId = 2,
                          Gender = Gender.Female,
                          Scores = new List<Score>
                          {
-                             new Score("Математика", 3.0),
-                             new Score("Литература", 5.0)
+                             new Score("Математика", 3.0, 6, 11),
+                             new Score("Литература", 5.0, 6, 12)
                          }
                      }
                  }

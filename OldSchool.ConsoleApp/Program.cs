@@ -36,10 +36,20 @@ var generatorTask = new Task(() =>
 {
     while (!tokenToStopGenerationg.IsCancellationRequested)
     {
-        host.Services.GetRequiredService<ISchoolService>().GenerateStudentInStore();
+        try
+        {
+            host.Services.GetRequiredService<ISchoolService>().GenerateStudentInStore();
+            
+        }
+        catch(Exception exception)
+        {
+            host.Services.GetRequiredService<ILoggerFactory>()
+                .CreateLogger("MaxLoggeer").LogError(exception,"Can't create a student");
+        }
         Thread.Sleep(1000);
     }
 }, tokenToStopGenerationg);
+
 generatorTask.Start();
 while (!tokenToStopProgram.IsCancellationRequested)
 {

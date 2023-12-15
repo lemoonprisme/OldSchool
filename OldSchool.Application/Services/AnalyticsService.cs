@@ -37,11 +37,6 @@ public class AnalyticsService: IAnalyticsService
         })
                 .AsEnumerable().ToDictionary(loc => loc.Location, ct => ct.Count);
 
-        schoolAnalytics.LocationWithHighestScoreBySubject = _schoolRepository.GetAll().Select(a => new
-        {
-            Location = a.Location,
-            Scores = a.Students.SelectMany(s => s.Scores).Select(sc => sc.Mark)
-        }).GroupBy(k => k.Location).
         return schoolAnalytics;
     }
 }
