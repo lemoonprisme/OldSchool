@@ -264,7 +264,7 @@ public class SchoolServiceTests
         mockSchools.Setup(a => a.GetAll()).Returns(schools);
         var service = new SchoolService(new NullLogger<SchoolService>(),mockSchools.Object , mockStudents.Object);
         //Act
-        var actual = service.GetStudentsNameStartWithA();
+        var actual = service.GetStudentsNameStartWithAAsync();
         //Assert
         return Verify(actual);
     }

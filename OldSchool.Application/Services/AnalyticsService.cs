@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using OldSchool.Application.Models;
 using OldSchool.Domain.Models;
 using OldSchool.Infrastructure;
@@ -7,36 +9,41 @@ namespace OldSchool.Application.Services;
 
 public class AnalyticsService: IAnalyticsService
 {
-    private readonly IRepository<School> _schoolRepository;
-    private readonly IRepository<Student> _studentRepository;
+    private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<SchoolService> _logger;
 
-    public AnalyticsService(IRepository<School> schoolRepository, IRepository<Student> studentRepository, ILogger<SchoolService> logger)
+    public AnalyticsService(
+        ILogger<SchoolService> logger,
+        IServiceProvider serviceProvider)
     {
-        _schoolRepository = schoolRepository;
-        _studentRepository = studentRepository;
         _logger = logger;
+        _serviceProvider = serviceProvider;
     }
 
-    public SchoolAnalytics GetStatistics()
+    public async Task<SchoolAnalytics> GetStatistics()
     {
+        
+        var totalSchoolCountTask = _serviceProvider.GetRequiredService<IRepository<School>>().GetAll().CountAsync();
+        var totalStudentCountTask = _serviceProvider.GetRequiredService<IRepository<Student>>().GetAll().CountAsync();
         var schoolAnalytics = new SchoolAnalytics();
-        schoolAnalytics.TotalSchoolCount = _schoolRepository.GetAll().Count();
-        schoolAnalytics.TotalStudentCount = _studentRepository.GetAll().Count();
-        schoolAnalytics.AverageScoreBySchool = _schoolRepository.GetAll().Select(h => new
+        
+        var averageScoreBySchoolTask = _serviceProvider.GetRequiredService<IRepository<School>>().GetAll().Select(h => new
         {
             Name = h.Name,
             AvgScore = h.Students.SelectMany(st => st.Scores.Select(f => f.Mark)).Average()
-        }).AsEnumerable().ToDictionary(scl => scl.Name, scr => scr.AvgScore);
-        
-        schoolAnalytics.StudentsCountByLocation = _schoolRepository.GetAll().GroupBy(sc => sc.Location)
-            .Select(h => new
-        {
-            Location = h.Key,
-            Count = h.SelectMany(s => s.Students).Count()
-        })
-                .AsEnumerable().ToDictionary(loc => loc.Location, ct => ct.Count);
+        }).ToListAsync();
 
+        var studentCountByLocation = _serviceProvider.GetRequiredService<IRepository<School>>().GetAll().GroupBy(sc => sc.Location)
+            .Select(h => new
+            {
+                Location = h.Key,
+                Count = h.SelectMany(s => s.Students).Count()
+            }).ToListAsync();
+        await Task.WhenAll(totalSchoolCountTask, totalStudentCountTask,averageScoreBySchoolTask, studentCountByLocation);
+        schoolAnalytics.TotalSchoolCount = totalSchoolCountTask.Result;
+        schoolAnalytics.TotalStudentCount = totalStudentCountTask.Result;
+        schoolAnalytics.AverageScoreBySchool = averageScoreBySchoolTask.Result.ToDictionary(scl => scl.Name, scr => scr.AvgScore);
+        schoolAnalytics.StudentsCountByLocation = studentCountByLocation.Result.ToDictionary(loc => loc.Location, ct => ct.Count);
         return schoolAnalytics;
     }
 }

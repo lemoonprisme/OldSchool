@@ -4,5 +4,5 @@ namespace OldSchool.Application.Services;
 
 public interface IAnalyticsService
 {
-    public SchoolAnalytics GetStatistics();
+    public Task<SchoolAnalytics> GetStatistics();
 }
