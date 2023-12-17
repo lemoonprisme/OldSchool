@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OldSchool.Application.Background;
 using OldSchool.Application.Services;
@@ -9,23 +10,18 @@ namespace OldSchool.ConsoleApp;
 
 public class ConsoleService : IHostedService
 {
-    private readonly IRepository<School> _schoolRepository;
-    private readonly IRepository<Student> _studentRepository;
+    private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<SchoolService> _logger;
-    private readonly ISchoolService _schoolService;
     private readonly IAnalyticsService _analyticsService;
-    public ConsoleService(ILogger<SchoolService> logger, IRepository<School> schoolRepository,
-        IRepository<Student> studentRepository, ISchoolService schoolService, IAnalyticsService analyticsService)
+    public ConsoleService(ILogger<SchoolService> logger,
+        IAnalyticsService analyticsService, IServiceProvider serviceProvider)
     {
         _logger = logger;
-        _schoolRepository = schoolRepository;
-        _studentRepository = studentRepository;
-        _schoolService = schoolService;
         _analyticsService = analyticsService;
+        _serviceProvider = serviceProvider;
     }
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        await _schoolService.GenerateSchoolInStore();
         while (!cancellationToken.IsCancellationRequested)
         {
             
@@ -37,7 +33,19 @@ public class ConsoleService : IHostedService
             switch (message)
             {
                 case "get analytics":
-                    await _analyticsService.GetStatistics();
+                    var analytics = await _analyticsService.GetStatistics();
+                    Console.WriteLine($"Всего школ:{analytics.TotalSchoolCount}");
+                    Console.WriteLine($"Всего учеников: {analytics.TotalStudentCount}");
+                    Console.WriteLine("Средний балл по школам:");
+                    foreach (var score in analytics.AverageScoreBySchool)
+                    {
+                        Console.WriteLine($"{score.Key} {score.Value}");
+                    }
+                    Console.WriteLine("Локация с числом студентов в ней: ");
+                    foreach (var count in analytics.StudentsCountByLocation)
+                    {
+                        Console.WriteLine($"{count.Key} {count.Value}");
+                    }
                     break;
                 case "stop":
                     return;
@@ -49,7 +57,7 @@ public class ConsoleService : IHostedService
                     break;
                 case "generate a school":
                 {
-                    await _schoolService.GenerateSchoolInStore();
+                    await _serviceProvider.GetRequiredService<ISchoolService>().GenerateSchoolInStore();
                     break;
                 }
                 case "get students":
@@ -59,7 +67,7 @@ public class ConsoleService : IHostedService
                     int schoolId;
                     if (int.TryParse(schoolIdString, out schoolId))
                     {
-                        var studentsNames = _schoolRepository.GetAll() 
+                        var studentsNames = _serviceProvider.GetRequiredService<IRepository<School>>().GetAll() 
                             .Where(s => s.SchoolId == schoolId)
                             .SelectMany(s => s.Students.Select(f => f.Name));
                         foreach (var name in studentsNames)

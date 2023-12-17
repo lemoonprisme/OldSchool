@@ -1,37 +1,26 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace OldSchool.Application.Services;
 
 public class SchoolCreatorService : IHostedService
 {
-    private readonly ISchoolService _schoolService;
     private readonly ILogger<SchoolCreatorService> _logger;
+    private readonly IServiceProvider _serviceProvider;
 
-    public SchoolCreatorService(ISchoolService schoolService, ILogger<SchoolCreatorService> logger)
+    public SchoolCreatorService(ILogger<SchoolCreatorService> logger, 
+        IServiceProvider serviceProvider)
     {
-        _schoolService = schoolService;
         _logger = logger;
-    }
-    protected async Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-        
-            try
-            {
-                await _schoolService.GenerateSchoolInStore();
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e,"Can't create a school.");
-            }
-            
+        _serviceProvider = serviceProvider;
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         try
         {
-            await _schoolService.GenerateSchoolInStore();
+            await _serviceProvider.GetRequiredService<ISchoolService>().GenerateSchoolInStore();
         }
         catch (Exception e)
         {

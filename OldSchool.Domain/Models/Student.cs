@@ -10,7 +10,25 @@ public class Student
     public List<Score> Scores  { get; set; }
 }
 
-public record Score(string Subject, double Mark, int StudentId, int ScoreId);
+public class Score
+{
+    public string Subject { get; set; }
+    public double Mark { get; set; }
+    public int StudentId { get; set; }
+    public int  ScoreId { get; set; }
+
+    public Score()
+    {
+        
+    }
+    public Score(string subject, double mark, int studentId, int scoreId)
+    {
+        Subject = subject;
+        Mark = mark;
+        StudentId = studentId;
+        ScoreId = scoreId;
+    }
+}
 
 public enum Gender
 {

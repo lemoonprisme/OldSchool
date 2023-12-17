@@ -1,5 +1,6 @@
 ﻿using Bogus;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OldSchool.Application.Services;
@@ -10,16 +11,13 @@ namespace OldSchool.Application.Background;
 
 public class StudentCreator : BackgroundService
 {
-    private readonly IRepository<School> _schoolRepository;
-    private readonly IRepository<Student> _studentRepository;
+    private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<SchoolService> _logger;
 
-    public StudentCreator(ILogger<SchoolService> logger, IRepository<School> schoolRepository,
-        IRepository<Student> studentRepository)
+    public StudentCreator(ILogger<SchoolService> logger, IServiceProvider serviceProvider)
     {
         _logger = logger;
-        _schoolRepository = schoolRepository;
-        _studentRepository = studentRepository;
+        _serviceProvider = serviceProvider;
     }
 
     protected override Task ExecuteAsync(CancellationToken stoppingToken)
@@ -27,18 +25,25 @@ public class StudentCreator : BackgroundService
 
         return Task.Run(async () =>
         {
+            var schoolRepositoryService = _serviceProvider.GetRequiredService<IRepository<School>>();
+            var studentRepositoryService = _serviceProvider.GetRequiredService<IRepository<Student>>();
             while (!stoppingToken.IsCancellationRequested)
             {
                 try
                 {
+                    var subjects = new List<string>() { "Матан", "Литра" };
+                    var scoreFaker = new Faker<Score>().RuleFor(s => s.Mark, f => f.Random.Int(0, 5))
+                        .RuleFor(s => s.Subject, f => f.PickRandom(subjects));
                     var studentFaker = new Faker<Student>().RuleFor(s => s.Name, f => f.Name.FullName())
                         .RuleFor(s => s.Age, f => f.Random.Int(7, 20))
-                        .RuleFor(s => s.Gender, f => f.PickRandom<Gender>());
+                        .RuleFor(s => s.Gender, f => f.PickRandom<Gender>())
+                        .RuleFor(s=>s.Scores,f=> scoreFaker.Generate(3));
                     var student = studentFaker.Generate();
-                    var schoolIds = await _schoolRepository.GetAll().Select(s => s.SchoolId).ToArrayAsync(cancellationToken: stoppingToken);
-                    student.SchoolId = schoolIds.ElementAt(new Random().Next(0, schoolIds.Count()-1));
-                    _studentRepository.Create(student);
-                    await _studentRepository.SaveAsync();
+                    var schoolIds = await schoolRepositoryService.GetAll().Select(s => s.SchoolId).
+                        ToArrayAsync(cancellationToken: stoppingToken);
+                    student.SchoolId = schoolIds.ElementAt(new Random().Next(0, schoolIds.Count()));
+                    studentRepositoryService.Create(student);
+                    await studentRepositoryService.SaveAsync();
                     // using (_logger.BeginScope(new Dictionary<string, object>()
                     //        {
                     //            {"@Student", student}
