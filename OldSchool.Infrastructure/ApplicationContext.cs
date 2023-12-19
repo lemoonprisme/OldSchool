@@ -8,14 +8,28 @@ public class ApplicationContext : DbContext
     private readonly string _connectingString;
     public DbSet<School> Schools { get; set; }
     public DbSet<Student> Students { get; set; }
+    public DbSet<Score> Scores { get; set; }
     public ApplicationContext(DbContextOptions<ApplicationContext> options)
         : base(options)
     {
-        Database.EnsureCreated();
     }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         var schoolId = 1;
+
+
+        var scores1 = new List<Score>()
+        {
+            new Score("Математика", 4.0, 1,1),
+            new Score("Литература", 4.0, 1,2)
+        };
+        var scores2 = new List<Score>()
+        {
+            new Score("Математика", 5.0, 2,3),
+            new Score("Литература", 5.0, 2, 4)
+        };
+        
+        modelBuilder.Entity<Score>().HasKey(s => s.ScoreId);
         var student1 = new Student()
         {
             StudentId = 1,
@@ -30,15 +44,13 @@ public class ApplicationContext : DbContext
             Name = "Karl Uber",
             SchoolId = schoolId
         };
-        modelBuilder.Entity<Student>().HasData(student1,student2);
+        
         var school = new School
         {
             SchoolId = schoolId,
             Name = "William's Hight School",
-            Location = "Shakespeareland",
+            Location = "Shakespeareland"
         };
-        modelBuilder.Entity<School>().HasMany(u => u.Students);
-        modelBuilder.Entity<School>().HasData(school);
 
     }
 }

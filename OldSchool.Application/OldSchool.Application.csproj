@@ -13,10 +13,7 @@
 
     <ItemGroup>
       <PackageReference Include="Bogus" Version="34.0.2" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Background\" />
+      <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0" />
     </ItemGroup>
 
     

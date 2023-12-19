@@ -5,8 +5,9 @@ namespace OldSchool.Application.Services;
 
 public interface ISchoolService
 {
-    IEnumerable<string> GetUniqueStudentNames();
+    Task<List<string>> GetUniqueStudentNames();
     Dictionary<School, double> GetAverageStudentAge();
-    IEnumerable<Student> GetStudentsNameStartWithA();
-    void GenerateStudentInStore();
+    Task<List<Student>> GetStudentsNameStartWithAAsync();
+    Task GenerateStudentInStore();
+    public Task GenerateSchoolInStore();
 }

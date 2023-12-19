@@ -1,0 +1,14 @@
+﻿{
+  TotalSchoolCount: 2,
+  TotalStudentCount: 4,
+  StudentsCountByLocation: {
+    Russia: 4
+  },
+  LocationWithHighestScoreBySubject: {
+    strisadasdsng: sdsadsatring
+  },
+  AverageScoreBySchool: {
+    Alpha: 4.0,
+    Beta: 3.6666666666666665
+  }
+}

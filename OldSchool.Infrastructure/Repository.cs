@@ -11,14 +11,14 @@ public class Repository<T> : IRepository<T> where T : class
         _context = context;
     }
 
-    public IEnumerable<T> GetAll()
+    public IQueryable<T> GetAll()
     {
         return _context.Set<T>();
     }
 
-    public T? GetById(int id)
+    public ValueTask<T?> GetByIdAsync(int id)
     {
-        return _context.Find<T>(id);
+        return _context.FindAsync<T>(id);
     }
 
     public void Create(T item)
@@ -31,15 +31,15 @@ public class Repository<T> : IRepository<T> where T : class
         _context.Entry(item).State = EntityState.Modified;
     }
 
-    public void Delete(int id)
+    public async Task DeleteAsync(int id)
     {
-        var item = _context.Find<T>(id);
+        var item = await _context.FindAsync<T>(id);
         if (item != null)
             _context.Set<T>().Remove(item);
     }
 
-    public void Save()
+    public async Task SaveAsync()
     {
-        _context.SaveChanges();
+        await _context.SaveChangesAsync();
     }
 }
