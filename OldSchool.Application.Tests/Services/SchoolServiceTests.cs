@@ -86,7 +86,7 @@ public class SchoolServiceTests
         }
     }
 };
-        mockStudents.Setup(a => a.GetAll()).Returns(schools.SelectMany(s => s.Students));
+        mockStudents.Setup(a => a.GetAll()).Returns(schools.AsQueryable().SelectMany(s => s.Students));
         
         var service = new SchoolService(new NullLogger<SchoolService>(), new Mock<IRepository<School>>().Object, mockStudents.Object);
         //Act
@@ -173,7 +173,7 @@ public class SchoolServiceTests
         }
     }
 };
-        mock.Setup(a => a.GetAll()).Returns(schools);
+        mock.Setup(a => a.GetAll()).Returns(schools.AsQueryable);
         var service = new SchoolService(new NullLogger<SchoolService>(), mock.Object, new Mock<IRepository<Student>>().Object);
         //Act
         var actual = service.GetAverageStudentAge()
@@ -260,8 +260,8 @@ public class SchoolServiceTests
         }
     }
 };
-        mockStudents.Setup(a => a.GetAll()).Returns(schools.SelectMany(s => s.Students));
-        mockSchools.Setup(a => a.GetAll()).Returns(schools);
+        mockStudents.Setup(a => a.GetAll()).Returns(schools.AsQueryable().SelectMany(s => s.Students));
+        mockSchools.Setup(a => a.GetAll()).Returns(schools.AsQueryable);
         var service = new SchoolService(new NullLogger<SchoolService>(),mockSchools.Object , mockStudents.Object);
         //Act
         var actual = service.GetStudentsNameStartWithAAsync();

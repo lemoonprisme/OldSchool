@@ -1,7 +1,11 @@
 ﻿using Argon;
 using Bogus;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
+using MockQueryable.Moq;
 using Moq;
+using OldSchool.Application.Models;
 using OldSchool.Application.Services;
 using OldSchool.Domain.Models;
 using OldSchool.Infrastructure;
@@ -11,16 +15,10 @@ namespace OldSchool.Application.Tests.Services;
 public class SchoolAnalyticsTests
 {
     [Fact]
-    public Task GetAnalytics_ReturnStatistics()
+    public async Task GetAnalytics_ReturnStatistics()
     {
         //Arrange
-        var mockStudents = new Mock<IRepository<Student>>();
-        var mockSchools = new Mock<IRepository<School>>();
-        
-        
-         // Создание школ
-         
-         List<School> schools = new List<School>
+        List<School> schools = new List<School>
          {
              new School
              {
@@ -129,15 +127,75 @@ public class SchoolAnalyticsTests
                  }
              }
          };
-         
-        mockStudents.Setup(a => a.GetAll()).Returns(schools.SelectMany(s => s.Students));
-        mockSchools.Setup(a => a.GetAll()).Returns(schools);
-        var service = new AnalyticsService(mockSchools.Object, mockStudents.Object, new NullLogger<SchoolService>());
+        
+        var schoolsMock = schools.BuildMock();
+        
+        ServiceCollection sc = new ServiceCollection();
+        var mockStudents = new Mock<IRepository<Student>>();
+        var mockSchools = new Mock<IRepository<School>>();
+        
+        mockSchools.Setup(s => s.GetAll())
+            .Returns(schoolsMock);
+        mockStudents.Setup(s => s.GetAll())
+            .Returns(schoolsMock.SelectMany(s => s.Students));
+        sc.AddScoped<IRepository<Student>>(_ => mockStudents.Object);
+        sc.AddScoped<IRepository<School>>(_ => mockSchools.Object);
+        var serviceProvider = sc.BuildServiceProvider();
+         // Создание школ
+        
+        var service = new AnalyticsService( new NullLogger<SchoolService>(), serviceProvider);
         //Act
-        var statistics = service.GetStatistics();
+        var statistics = await service.GetStatistics();
         
         
         //Assert
-        return Verify(statistics);
+        await Verify(statistics);
+    }
+    [Fact]
+    public async Task GetAnalytics_OneStudentWithoutScores_ReturnStatistics()
+    {
+        //Arrange
+        var schools = new List<School>()
+        {
+            new SchoolBuilder().SetSchoolName("Alpha").SetStudents(new List<Student>()
+            {
+                new StudentBuilder().SetSchoolId(1).Build(),
+                new StudentBuilder().SetSchoolId(1).SetStudentScores(new List<Score>()
+                {
+                    new ScoreBuilder().SetMark(4).SetSubject("Inf").SetMark(3).Build()
+                }).Build()
+            }).Build(),
+            new SchoolBuilder().SetSchoolName("Beta").SetStudents(new List<Student>()
+            {
+                new StudentBuilder().SetSchoolId(2).Build(),
+                new StudentBuilder().SetSchoolId(2).SetStudentScores(new List<Score>()
+                {
+                    new ScoreBuilder().SetMark(4).SetSubject("Inf").SetMark(3).Build(),
+                    new ScoreBuilder().SetMark(3).Build()
+                }).Build()
+            }).Build()
+        };
+        var schoolsMock = schools.BuildMock();
+        
+        ServiceCollection sc = new ServiceCollection();
+        var mockStudents = new Mock<IRepository<Student>>();
+        var mockSchools = new Mock<IRepository<School>>();
+        
+        mockSchools.Setup(s => s.GetAll())
+            .Returns(schoolsMock);
+        mockStudents.Setup(s => s.GetAll())
+            .Returns(schoolsMock.SelectMany(s => s.Students));
+        sc.AddScoped<IRepository<Student>>(_ => mockStudents.Object);
+        sc.AddScoped<IRepository<School>>(_ => mockSchools.Object);
+        var serviceProvider = sc.BuildServiceProvider();
+         // Создание школ
+        
+        var service = new AnalyticsService( new NullLogger<SchoolService>(), serviceProvider);
+        //Act
+        var statistics = await service.GetStatistics();
+        
+        
+        //Assert
+        await Verify(statistics);
     }
 }

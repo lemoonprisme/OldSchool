@@ -27,7 +27,9 @@ public class AnalyticsService: IAnalyticsService
         var totalStudentCountTask = _serviceProvider.CreateScope().ServiceProvider.GetRequiredService<IRepository<Student>>().GetAll().CountAsync();
         var schoolAnalytics = new SchoolAnalytics();
         
-        var averageScoreBySchoolTask = _serviceProvider.CreateScope().ServiceProvider.GetRequiredService<IRepository<School>>().GetAll().Select(h => new
+        var averageScoreBySchoolTask = _serviceProvider.CreateScope()
+            .ServiceProvider.GetRequiredService<IRepository<School>>()
+            .GetAll().Select(h => new
         {
             Name = h.Name,
             AvgScore = h.Students.SelectMany(st => st.Scores.Select(f => f.Mark)).DefaultIfEmpty().Average()
